@@ -63,84 +63,114 @@
     <h1>Patient Core Metrics</h1>
     <p class="muted">Core patient metrics used by medication dosing calculators.</p>
 
-    <div class="grid">
-      <div class="card">
-        <h2 style="margin:0 0 8px; font-size:16px;">Inputs</h2>
+<div class="grid">
 
-        <label for="weightKg">Weight (kg)</label>
-        <input id="weightKg" type="number" step="0.1" min="0" placeholder="e.g., 70" />
+  <!-- INPUTS CARD -->
+  <div class="card">
+    <h2>Inputs</h2>
 
-        <label for="heightCm">Height (cm)</label>
-        <input id="heightCm" type="number" step="0.1" min="0" placeholder="e.g., 170" />
+    <label for="weightKg">Weight (kg)</label>
+    <input id="weightKg" type="number" />
 
-        <button id="calcBtn" type="button" style="margin-top:12px;">
-          Calculate
-        </button>
-      </div>
+    <label for="heightCm">Height (cm)</label>
+    <input id="heightCm" type="number" />
+    
+    <label for="med">Medication</label>
+    <select id="med">
+        <option value="core">Patient core only</option>
+        <option value="euthyrox">Euthyrox (levothyroxine)</option>
+    </select>
 
-      <div class="card">
-        <h2 style="margin:0 0 8px; font-size:16px;">Results</h2>
-        <div id="results" class="muted">
-          Enter values and click Calculate.
-        </div>
-      </div>
+    <!-- MEDICATION DROPDOWN -->
+
+    <button id="calcBtn" type="button">
+      Calculate
+    </button>
+  </div>
+
+  <!-- RESULTS CARD -->
+  <div class="card">
+    <h2>Results</h2>
+    <div id="results">
+      Enter values and click Calculate.
     </div>
   </div>
 
-  <script>
-    function readNumber(id) {
-      return Number(document.getElementById(id).value);
+</div>
+<script>
+  function readNumber(id) {
+    return Number(document.getElementById(id).value);
+  }
+
+  function validate(weightKg, heightCm) {
+    if (!isFinite(weightKg) || !isFinite(heightCm)) {
+      return "Numbers are required.";
+    }
+    if (weightKg <= 0) return "Weight must be > 0 kg.";
+    if (heightCm <= 0) return "Height must be > 0 cm.";
+    return "";
+  }
+
+  function calcBMI(weightKg, heightCm) {
+    const heightM = heightCm / 100;
+    return weightKg / (heightM * heightM);
+  }
+
+  function calcBSA(weightKg, heightCm) {
+    return Math.sqrt((heightCm * weightKg) / 3600);
+  }
+
+  function classifyBMI(bmi) {
+    if (bmi < 18.5) return "Underweight";
+    if (bmi < 25) return "Normal";
+    if (bmi < 30) return "Overweight";
+    return "Obese";
+  }
+
+  function calcEuthyroxInitialDoseMcgPerDay(weightKg) {
+    const mcgPerKgPerDay = 1.6;
+    return weightKg * mcgPerKgPerDay;
+  }
+
+  const resultsEl = document.getElementById("results");
+  const btn = document.getElementById("calcBtn");
+
+  btn.addEventListener("click", () => {
+    const weightKg = readNumber("weightKg");
+    const heightCm = readNumber("heightCm");
+
+    const error = validate(weightKg, heightCm);
+    if (error) {
+      resultsEl.textContent = error;
+      return;
     }
 
-    function validate(weightKg, heightCm) {
-      if (!isFinite(weightKg) || !isFinite(heightCm)) {
-        return "Numbers are required.";
-      }
-      if (weightKg <= 0) return "Weight must be > 0 kg.";
-      if (heightCm <= 0) return "Height must be > 0 cm.";
-      return "";
+    // patient metrics
+    const heightM = heightCm / 100;
+    const bmi = calcBMI(weightKg, heightCm);
+    const bsa = calcBSA(weightKg, heightCm);
+    const bmiClass = classifyBMI(bmi);
+
+    // medication selection
+    const med = document.getElementById("med").value;
+
+    // medication-specific output
+    let medLine = "";
+    if (med === "euthyrox") {
+      const doseMcg = calcEuthyroxInitialDoseMcgPerDay(weightKg);
+      medLine =
+        `<br><strong>Euthyrox estimate:</strong> ${doseMcg.toFixed(0)} mcg/day`;
     }
 
-    function calcBMI(weightKg, heightCm) {
-      const heightM = heightCm / 100;
-      return weightKg / (heightM * heightM);
-    }
+    // final output
+    resultsEl.innerHTML =
+      `Height: ${heightM.toFixed(2)} m<br>
+       BMI: ${bmi.toFixed(1)} kg/m² (<strong>${bmiClass}</strong>)<br>
+       BSA: ${bsa.toFixed(2)} m²` +
+      medLine;
+  });
+</script>
 
-    function calcBSA(weightKg, heightCm) {
-      return Math.sqrt((heightCm * weightKg) / 3600);
-    }
-
-    function classifyBMI(bmi) {
-      if (bmi < 18.5) return "Underweight";
-      if (bmi < 25) return "Normal";
-      if (bmi < 30) return "Overweight";
-      return "Obese";
-    }
-
-    const resultsEl = document.getElementById("results");
-    const btn = document.getElementById("calcBtn");
-
-    btn.addEventListener("click", () => {
-      const weightKg = readNumber("weightKg");
-      const heightCm = readNumber("heightCm");
-
-      const error = validate(weightKg, heightCm);
-      if (error) {
-        resultsEl.textContent = error;
-        return;
-      }
-
-      const heightM = heightCm / 100;
-      const bmi = calcBMI(weightKg, heightCm);
-      const bsa = calcBSA(weightKg, heightCm);
-      const bmiClass = classifyBMI(bmi);
-
-      resultsEl.innerHTML =
-        `Height: ${heightM.toFixed(2)} m<br>
-         BMI: ${bmi.toFixed(1)} kg/m² (<strong>${bmiClass}</strong>)<br>
-         BSA: ${bsa.toFixed(2)} m²`;
-    });
-  </script>
 
 </body>
 
