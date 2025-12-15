@@ -4,8 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Patient Core Metrics</title>
+
+  <!-- CSS LIVES HERE -->
 </head>
 <style>
+    
   body {
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     margin: 24px;
@@ -56,82 +59,89 @@
 
 <body>
 
-  <h1>Patient Core Metrics</h1>
+  <div class="container">
+    <h1>Patient Core Metrics</h1>
+    <p class="muted">Core patient metrics used by medication dosing calculators.</p>
 
-  <label>
-    Weight (kg)
-    <input id="weightKg" type="number" step="0.1" min="0" />
-  </label>
+    <div class="grid">
+      <div class="card">
+        <h2 style="margin:0 0 8px; font-size:16px;">Inputs</h2>
 
-  <br /><br />
+        <label for="weightKg">Weight (kg)</label>
+        <input id="weightKg" type="number" step="0.1" min="0" placeholder="e.g., 70" />
 
-  <label>
-    Height (cm)
-    <input id="heightCm" type="number" step="0.1" min="0" />
-  </label>
+        <label for="heightCm">Height (cm)</label>
+        <input id="heightCm" type="number" step="0.1" min="0" placeholder="e.g., 170" />
 
-  <br /><br />
+        <button id="calcBtn" type="button" style="margin-top:12px;">
+          Calculate
+        </button>
+      </div>
 
-  <button id="calcBtn" type="button">Calculate</button>
+      <div class="card">
+        <h2 style="margin:0 0 8px; font-size:16px;">Results</h2>
+        <div id="results" class="muted">
+          Enter values and click Calculate.
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <h2>Results</h2>
-  <div id="results">Enter values and click Calculate.</div>
-
-  <!-- JAVASCRIPT ALWAYS GOES HERE -->
-<script>
-  function readNumber(id) {
-    // .value comes back as a string; Number(...) converts to a JS number
-    return Number(document.getElementById(id).value);
-  }
-
-  function validate(weightKg, heightCm) {
-    if (!isFinite(weightKg) || !isFinite(heightCm)) return "Numbers are required.";
-    if (weightKg <= 0) return "Weight must be > 0 kg.";
-    if (heightCm <= 0) return "Height must be > 0 cm.";
-    return "";
-  }
-
-  function calcBMI(weightKg, heightCm) {
-    const heightM = heightCm / 100;
-    return weightKg / (heightM * heightM);
-  }
-
-  function calcBSA(weightKg, heightCm) {
-    // Mosteller: sqrt((height(cm) * weight(kg)) / 3600)
-    return Math.sqrt((heightCm * weightKg) / 3600);
-  }
-  
-  function classifyBMI(bmi) {
-  if (bmi < 18.5) return "Underweight";
-  if (bmi < 25) return "Normal";
-  if (bmi < 30) return "Overweight";
-  return "Obese";
-}
-
-
-  const resultsEl = document.getElementById("results");
-  const btn = document.getElementById("calcBtn");
-
-  btn.addEventListener("click", () => {
-    const weightKg = readNumber("weightKg");
-    const heightCm = readNumber("heightCm");
-
-    const error = validate(weightKg, heightCm);
-    if (error) {
-      resultsEl.textContent = error;
-      return;
+  <script>
+    function readNumber(id) {
+      return Number(document.getElementById(id).value);
     }
 
-    const heightM = heightCm / 100;
-    const bmi = calcBMI(weightKg, heightCm);
-    const bsa = calcBSA(weightKg, heightCm);
-    const bmiClass = classifyBMI(bmi);
+    function validate(weightKg, heightCm) {
+      if (!isFinite(weightKg) || !isFinite(heightCm)) {
+        return "Numbers are required.";
+      }
+      if (weightKg <= 0) return "Weight must be > 0 kg.";
+      if (heightCm <= 0) return "Height must be > 0 cm.";
+      return "";
+    }
 
+    function calcBMI(weightKg, heightCm) {
+      const heightM = heightCm / 100;
+      return weightKg / (heightM * heightM);
+    }
 
-    resultsEl.innerHTML =
-      `Height: ${heightM.toFixed(2)} m<br>BMI: ${bmi.toFixed(1)} kg/m² (<strong>${bmiClass}</strong>)<br>BSA: ${bsa.toFixed(2)} m²`;
-  });
-</script>
+    function calcBSA(weightKg, heightCm) {
+      return Math.sqrt((heightCm * weightKg) / 3600);
+    }
+
+    function classifyBMI(bmi) {
+      if (bmi < 18.5) return "Underweight";
+      if (bmi < 25) return "Normal";
+      if (bmi < 30) return "Overweight";
+      return "Obese";
+    }
+
+    const resultsEl = document.getElementById("results");
+    const btn = document.getElementById("calcBtn");
+
+    btn.addEventListener("click", () => {
+      const weightKg = readNumber("weightKg");
+      const heightCm = readNumber("heightCm");
+
+      const error = validate(weightKg, heightCm);
+      if (error) {
+        resultsEl.textContent = error;
+        return;
+      }
+
+      const heightM = heightCm / 100;
+      const bmi = calcBMI(weightKg, heightCm);
+      const bsa = calcBSA(weightKg, heightCm);
+      const bmiClass = classifyBMI(bmi);
+
+      resultsEl.innerHTML =
+        `Height: ${heightM.toFixed(2)} m<br>
+         BMI: ${bmi.toFixed(1)} kg/m² (<strong>${bmiClass}</strong>)<br>
+         BSA: ${bsa.toFixed(2)} m²`;
+    });
+  </script>
 
 </body>
+
 </html>
